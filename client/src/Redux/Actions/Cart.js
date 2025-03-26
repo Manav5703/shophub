@@ -13,6 +13,9 @@ import { BASE_URL } from "../Constants/BASE_URL";
 export const addToCartAction = (id, qty) => async (dispatch, getState) => {
     try { 
         const { data } = await axios.get(`${BASE_URL}/api/products/${id}`)
+        if (!data) {
+            throw new Error('Product not found');
+        }
         dispatch({
             type: ADD_ITEM_TO_CART,
             payload: {
@@ -29,17 +32,17 @@ export const addToCartAction = (id, qty) => async (dispatch, getState) => {
         localStorage.setItem("cartItems", JSON.stringify(cartItems))
         
     } catch (error) {
-        console.log(error)
+        console.error("Error adding to cart:", error.message);
     }
 }
 
 export const removeFromCartAction = (id) => (dispatch, getState) => {
     dispatch({
         type: REMOVE_ITEM_FROM_CART,
-        payload:id
+        payload: id
     })
 
-    localStorage.setItem("cartItems",JSON.stringify(getState().cart.cartItems) )
+    localStorage.setItem("cartItems", JSON.stringify(getState().cartReducer.cartItems))
 }
 
 

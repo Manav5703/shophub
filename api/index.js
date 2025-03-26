@@ -2,18 +2,26 @@ const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
 const products = require("./data/Products");
+
+// Load environment variables from .env file
 dotenv.config();
+
+// Make sure environment variables are loaded
+if (!process.env.PORT || !process.env.MONGODB_URL) {
+  console.error("Missing required environment variables. Please check your .env file");
+  process.exit(1);
+}
+
 const PORT = process.env.PORT;
 const cors = require("cors")
 const mongoose = require("mongoose");
 
-
 //connect db
 mongoose
-  .connect(process.env.MONGOOSEDB_RUL)
+  .connect(process.env.MONGODB_URL)
   .then(() => console.log("db connected"))
-  .then((err) => {
-    err;
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
   });
 
 const databaseSeeder = require("./databaseSeeder");
@@ -37,37 +45,14 @@ app.use("/api/products", productRoute);
 //routes for orders
 app.use("/api/orders", orderRoute);
 
-
-
-
-
 // paypal payment api for client key;
 app.use("/api/config/paypal", (req, res) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });
 
-
-
-
-
 app.listen(PORT || 9000, () => {
   console.log(`server listening on port ${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //api product test route
 // app.get("/api/products", (req, res) => {

@@ -8,20 +8,25 @@ const protect = require("../middleware/Auth");
 userRoute.post(
   "/login",
   AsyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const { identifier, password } = req.body;
+    // Find user by either email or username
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { username: identifier }]
+    });
+    
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user.id,
         name: user.name,
         email: user.email,
+        username: user.username,
         isAdmin: user.isAdmin,
         token: generateToekn(user._id),
         createdAt: user.createdAt,
       });
     } else {
       res.status(401);
-      throw new Error("Invalid Email or Password");
+      throw new Error("Invalid credentials");
     }
   })
 );
@@ -30,30 +35,42 @@ userRoute.post(
 userRoute.post(
   "/",
   AsyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
-    const existUser = await User.findOne({ email });
-    if (existUser) {
+    const { name, email, username, password } = req.body;
+    
+    // Check if email or username already exists
+    const userExists = await User.findOne({
+      $or: [{ email }, { username }]
+    });
+    
+    if (userExists) {
       res.status(400);
-      throw new Error("User Already exist");
-    } else {
-      const user = await User.create({
-        name,
-        email,
-        password,
-      });
+      throw new Error(
+        userExists.email === email 
+          ? "Email already exists" 
+          : "Username already exists"
+      );
+    }
 
-      if (user) {
-        res.status(201).json({
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          isAdmin: user.isAdmin,
-          createdAt: user.createdAt,
-        });
-      } else {
-        res.status(400);
-        throw new Error("Invalid User Data");
-      }
+    const user = await User.create({
+      name,
+      email,
+      username,
+      password,
+    });
+
+    if (user) {
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        isAdmin: user.isAdmin,
+        token: generateToekn(user._id),
+        createdAt: user.createdAt,
+      });
+    } else {
+      res.status(400);
+      throw new Error("Invalid User Data");
     }
   })
 );
@@ -69,6 +86,7 @@ userRoute.get(
         _id: user._id,
         name: user.name,
         email: user.email,
+        username: user.username,
         isAdmin: user.isAdmin,
         createdAt: user.createdAt,
       });
@@ -88,20 +106,22 @@ userRoute.put(
     if (user) {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
-      if(req.body.password)
-      {
-        user.password = req.body.password
+      user.username = req.body.username || user.username;
+      
+      if(req.body.password) {
+        user.password = req.body.password;
       }
+      
       const updatedUser = await user.save();
       res.json({
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
+        username: updatedUser.username,
         isAdmin: updatedUser.isAdmin,
         createdAt: updatedUser.createdAt,
-        token:generateToekn(updatedUser._id)
+        token: generateToekn(updatedUser._id)
       });
-
     } else {
       res.status(404);
       throw new Error("USER NOT FOUND");

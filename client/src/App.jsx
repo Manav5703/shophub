@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter as Router,
   Routes,
@@ -14,6 +13,8 @@ import { useSelector } from "react-redux";
 import PlaceOrder from "./pages/PlaceOrder";
 import OrderConfirmation from "./pages/OrderConfirm";
 import { OrderHistory } from "./pages/OrderHistory";
+import Products from "./pages/Products";
+import About from "./pages/About";
 
 function App() {
 
@@ -24,7 +25,9 @@ function App() {
       <Router>
         <Routes>
           <Route exact path="/" element={<Home />}></Route>
+          <Route exact path="/products" element={<Products />} />
           <Route exact path="/products/:id" element={<ProductDetail />}></Route>
+          <Route exact path="/about" element={<About />} />
           <Route
             exact
             path="/login"
