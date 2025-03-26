@@ -137,6 +137,8 @@ export default function PlaceOrder() {
     }
   ];
 
+  
+
   return (
     <Layout>
       <section className="text-gray-600 body-font overflow-hidden">
